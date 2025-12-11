@@ -15,7 +15,8 @@
 uint8_t KeyNum;
 int16_t AX,AY,AZ,GX,GY,GZ;
 int8_t id;
-uint16_t time = 0,Flag = 0;
+uint16_t time = 0;
+uint8_t MPU6050_Init_Flag = 0;
 
 static uint8_t count;
 
@@ -90,29 +91,23 @@ int main ()
 			AY -= Result.sumAY;
 			AZ -= (Result.sumAZ - 2048);
 			MPU6050_AngleSolve();
-				
+			if(!MPU6050_Init_Flag){MPU6050_Init_Flag = 1;}
 				
 		}
 		
 		
-		if(count >= 10){
+		if(count >= 10 && MPU6050_Init_Flag){
 			
-//				OLED_ShowSignedNum(0,16,AX,5,OLED_8X16);
-//				OLED_ShowSignedNum(0,32,AY,5,OLED_8X16);
-//				OLED_ShowSignedNum(0,48,AZ,5,OLED_8X16);
-//				OLED_ShowSignedNum(64,16,GX,5,OLED_8X16);
-//				OLED_ShowSignedNum(64,32,GY,5,OLED_8X16);
-//				OLED_ShowSignedNum(64,48,GZ,5,OLED_8X16);
+//			OLED_ShowFloatNum(0,16,X.Angle_Hat,3,3,OLED_8X16);
+//			OLED_ShowFloatNum(0,32,Z.Angle_Hat,3,3,OLED_8X16);
+//			OLED_ShowFloatNum(0,48,Y.Angle_Hat,3,3,OLED_8X16);
 			
-			OLED_ShowFloatNum(0,16,X.Angle_Hat,3,3,OLED_8X16);
-			OLED_ShowFloatNum(0,32,Z.Angle_Hat,3,3,OLED_8X16);
-			OLED_ShowFloatNum(0,48,Y.Angle_Hat,3,3,OLED_8X16);
+			Serial_Printf("@(%.2f)(%.2f)(%.2f)\r\n",X.Angle_Hat,Z.Angle_Hat,Y.Angle_Hat);//23msIMU
+			//Serial_Printf("%.2f,%.2f,%.2f\r\n",-X.Angle_Hat,Z.Angle_Hat,Y.Angle_Hat);//23ms串口
 			
-			//Serial_Printf("@(%.2f)(%.2f)(%.2f)\r\n",X.Angle_Hat,Z.Angle_Hat,Y.Angle_Hat);//23ms
-			Serial_Printf("%.2f,%.2f,%.2f\r\n",-X.Angle_Hat,Z.Angle_Hat,Y.Angle_Hat);//23ms
 			count = 0;
-			OLED_ShowNum(96,0,time,4,OLED_8X16);//20ms
-			OLED_Update();
+//			OLED_ShowNum(96,0,time,4,OLED_8X16);//20ms
+//			OLED_Update();
 		} 
 		
 		
@@ -141,7 +136,7 @@ void TIM2_IRQHandler(void)
 void MPU6050_AngleSolve(void)
 {
 
-		float dt = 0.061;
+		float dt = 0.0301;
 			
 		float dX = GX / 32768.0  * 2000,dY = GY / 32768.0  * 2000,dZ = GZ / 32768.0  * 2000;
 		
@@ -155,19 +150,6 @@ void MPU6050_AngleSolve(void)
 		Pitch = Madgwick_QuatToPitch(&MF) * 180 /3.14159;
 		Roll = Madgwick_QuatToRoll(&MF) * 180 /3.14159;
 		
-//		if(fabs(GZ) > 1){Yaw_g = Yaw + dZ * dt;}
-//		if(fabs(GY) > 1){Pitch_g = Pitch + dY * dt;}
-//		if(fabs(GX) > 1){Roll_g = Roll + dX * dt;} 
-//			
-//			
-//		Pitch_a = atan2(AY,AZ) / 3.14159 * 180;
-//		Roll_a = atan2(AX,AZ) / 3.14159 * 180;
-//			
-//		Yaw = Yaw_g;
-//		Pitch = Pitch_g;
-//		Roll = Roll_g;
-//		Pitch = Pitch_a * rate + Pitch_g * (1 - rate);
-//		Roll = Roll_a * rate + Roll_g * (1 - rate);
 		
 		KalmanFilter1D_Update(&X,dX,Roll,dt);
 		KalmanFilter1D_Update(&Y,dY,Pitch,dt);

@@ -176,7 +176,7 @@ uint8_t MPU6050_DataInit(int16_t *AccX,int16_t *AccY,int16_t *AccZ,int16_t *Gyro
 	if(flag){
 		return 1;
 	} else {
-		if(k <= 19){
+		if(k <= 49){
 			k ++;
 			Result -> sumAX  += *AccX;
 			Result -> sumAY += *AccY;
